@@ -1,0 +1,39 @@
+--- 
+- 
+  become: true
+  gather_facts: false
+  hosts: all
+  tasks: 
+    - 
+      command: "wget https://services.gradle.org/distributions/gradle-6.7-bin.zip chdir=/etc creates=/etc/gradle-6.7-bin.zip"
+      name: "Download Gradle"
+      tags: gradle
+    - 
+      name: "Ensure unzip is installed"
+      package: 
+        name: unzip
+        state: present
+    - 
+      name: "Unarchive the compressed Gradle binaries"
+      tags: gradle
+      unarchive: 
+        creates: /usr/lib/gradle-6.7
+        dest: /usr/lib
+        remote_src: true
+        src: /etc/gradle-6.7-bin.zip
+    - 
+      file: "path=/usr/lib/gradle src=/usr/lib/gradle-6.7 state=link force=yes"
+      name: "Update the symbolic link to the Gradle install"
+      tags: gradle
+    - 
+      lineinfile: "dest=/etc/environment regexp='^GRADLE_HOME.*' line='GRADLE_HOME=/usr/lib/gradle' insertbefore='^PATH.*'"
+      name: "Set GRADLE_HOME environment variable"
+      tags: gradle
+    - 
+      lineinfile: "dest=/etc/environment regexp='^GRADLE_OPTS.*' line='GRADLE_OPTS=\"-Xms256m -Xmx512m\"' insertafter='^GRADLE_HOME.*'"
+      name: "Set GRADLE_OPTS environment variable"
+      tags: gradle
+    - 
+      lineinfile: "dest=/etc/environment state=present backrefs=yes regexp='PATH=([\"]*)((?!.*?/usr/lib/gradle/bin))([\"]*)$' line=\"PATH=\\1\\2:/usr/lib/gradle/bin\\3\""
+      name: "Add Gradle binaries to PATH environment variable"
+      tags: gradle
