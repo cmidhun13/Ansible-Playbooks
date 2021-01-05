@@ -1,0 +1,48 @@
+--- 
+- 
+  become: true
+  gather_facts: false
+  hosts: all
+  pre_tasks: 
+    - 
+      name: "install python3 on ubuntu 18"
+      raw: "test -e /usr/bin/python3 || (apt-get -y update && apt-get install -y python3)"
+  tasks: 
+    - 
+      name: "Gather facts"
+      setup: ~
+    - 
+      become: true
+      get_url: 
+        dest: /etc/openjdk-11+28_linux-x64_bin.tar.gz
+        url: "https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz"
+      name: "Get Java tarball"
+    - 
+      become: true
+      file: 
+        path: /usr/lib/java11
+        state: directory
+      name: "make java 10 directory"
+    - 
+      become: true
+      name: "unpack tarball"
+      unarchive: 
+        dest: /usr/lib/java11
+        remote_src: true
+        src: /etc/openjdk-11+28_linux-x64_bin.tar.gz
+    - 
+      alternatives: 
+        link: /usr/bin/java
+        name: java
+        path: /usr/lib/java11/jdk-11/bin/java
+        priority: 20000
+      become: true
+      name: "update alternatives for java"
+    - 
+      become: true
+      blockinfile: 
+        block: "export JAVA_HOME=/usr/lib/java11/jdk-11/"
+        insertafter: EOF
+        path: /etc/environment
+      name: "set java home as environment variable"
+
