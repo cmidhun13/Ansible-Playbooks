@@ -1,0 +1,25 @@
+--- 
+- 
+  become: true
+  hosts: all
+  name: "install tomcast server"
+  tasks: 
+    - 
+      apt: 
+        name: openjdk-11-jdk
+        state: latest
+      name: "install java"
+    - 
+      get_url: 
+        dest: /usr/local
+        url: "https://mirrors.estointernet.in/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz"
+      name: "download kafka package"
+    - 
+      name: "extract kafka packages"
+      unarchive: 
+        dest: /usr/local
+        remote_src: true
+        src: /usr/local/kafka_2.13-2.7.0.tgz
+    - name: "remame folder"
+      become: true
+      shell: "mv /usr/local/kafka_2.13-2.7.0 /usr/local/kafka"
